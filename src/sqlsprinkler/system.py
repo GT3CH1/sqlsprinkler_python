@@ -3,9 +3,7 @@ from dataclasses import dataclass, field, asdict
 from typing import List
 
 import requests
-
-from sqlsprinkler import Zone, API
-
+from sqlsprinkler import API, Zone
 
 @dataclass
 class System:
@@ -38,7 +36,7 @@ class System:
         Returns the zones in the system.
         :return: A list of zones.
         """
-        self._fetch_zones()
+        self.zones = self._fetch_zones()
         return self.zones
 
     def get_system_state(self) -> bool:

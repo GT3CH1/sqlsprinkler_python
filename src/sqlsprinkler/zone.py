@@ -1,10 +1,7 @@
 from dataclasses import field, dataclass
 
 import requests
-
 from sqlsprinkler import API
-
-
 @dataclass
 class Zone:
     """ This class represents a SQL Sprinkler zone. """
@@ -36,7 +33,7 @@ class Zone:
         # send request to API_ZONE_URL with ID and state
         requests.put(f"{self.host}/{API.ZONE_URL}", json={"id": self.id, "state": self.state})
 
-    def update(self, other: Zone) -> None:
+    def update(self, other) -> None:
         """
         Updates the state of the zone.
         :param other: The zone to update with.
