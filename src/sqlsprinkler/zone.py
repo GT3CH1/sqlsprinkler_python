@@ -22,6 +22,7 @@ class Zone:
         """
         self.state = True
         # send request to API_ZONE_URL with ID and state
+        url = "{}{}"
         requests.put(f"{self.host}/{API.ZONE_URL}", json={"id": self.id, "state": self.state})
 
     def turn_off(self) -> None:

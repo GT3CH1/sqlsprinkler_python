@@ -5,30 +5,48 @@ from typing import List
 import requests
 from sqlsprinkler import API, Zone
 
-@dataclass
 class System:
     """ This class represents a SQL Sprinkler system. """
-    zones: List[Zone] = field(default_factory=list)
-    system_state: bool = field(default_factory=bool)
-    host: str = field(default_factory=str)
+    zones = []
+    system_state = False
+    hostname = ""
+
+    def __init__(self, hostname: str) -> None:
+        self.hostname = hostname
+        self.zones = self.get_zones()
+        self.system_state = self.get_system_state()
 
     def __post_init__(self) -> None:
         """
-        Gets the zones from the host.
+        Gets the zones from the hostname.
         :return: None
         """
+        print("Host {}".format(self.hostname))
         self.zones = self.get_zones()
         self.system_state = self.get_system_state()
 
     def _fetch_zones(self) -> List[Zone]:
         """
-        Fetches the zones from the host.
+        Fetches the zones from the hostname.
         :return: A list of zones.
         """
-        request = requests.get(f"{self.host}/{API.ZONE_INFO_URL}").json()
+        url = "{}/{}".format(self.hostname,API.ZONE_INFO_URL)
+        print(url)
+        request = requests.get(url)
+        print(request)
         zone_list = []
-        for zone in request:
-            zone_list.append(Zone(zone))
+        for zone in request.json():
+            new_zone = Zone()
+            new_zone.host = self.hostname
+            new_zone.name = zone['name']
+            new_zone.gpio = zone['gpio']
+            new_zone.time = zone['time']
+            new_zone.enabled = zone['enabled']
+            new_zone.auto_off = zone['auto_off']
+            new_zone.system_order = zone['system_order']
+            new_zone.state = zone['state']
+            new_zone.id = zone['id']
+            zone_list.append(new_zone)
         return zone_list
 
     def get_zones(self) -> List[Zone]:
@@ -53,17 +71,20 @@ class System:
         :param state: The state to set.
         :return: None
         """
-        request = requests.put(f"{self.host}/{API.SYSTEM_STATE_URL}", json={"system_state": state})
+        url = "{}/{}".format(self.hostname,API.SYSTEM_STATE_URL)
+        request = requests.put(url, json={"system_enabled": state})
         if request.status_code != 200:
             raise Exception(f"Failed to set system state {state}")
         self._update_system_state()
 
     def _update_system_state(self) -> None:
         """
-        Fetches the system state from the host.
+        Fetches the system state from the hostname.
         """
-        request = requests.get(f"{self.host}/{API.SYSTEM_STATE_URL}").json()
-        self.state = request["system_state"]
+        url = "{}/{}".format(self.hostname,API.SYSTEM_STATE_URL)
+        print(url)
+        request = requests.get(url).json()
+        self.state = request["system_enabled"]
 
     def update_zone_state(self, zone_id: int, state: bool) -> None:
         """
@@ -94,13 +115,13 @@ class System:
         :return: None
         """
         zone_to_add = {
-            "name": zone.name,
-            "gpio": zone.gpio,
-            "time": zone.time,
-            "enabled": zone.enabled,
-            "auto_off": zone.auto_off,
-        }
-        request = requests.post(f"{self.host}/{API.ZONE_URL}", json=zone_to_add)
+                "Name": zone.name,
+                "GPIO": zone.gpio,
+                "Time": zone.time,
+                "Enabled": zone.enabled,
+                "Autooff": zone.auto_off,
+                }
+        request = requests.post(f"{self.hostname}/{API.ZONE_URL}", json=zone_to_add)
         if request.status_code != 200:
             raise Exception(f"Failed to add zone {zone}")
         self.zones = self.get_zones()
@@ -111,7 +132,7 @@ class System:
         :param zone_id: The zone ID to delete.
         :return: None
         """
-        request = requests.delete(f"{self.host}/{API.ZONE_URL}", json={"id": zone_id})
+        request = requests.delete(f"{self.hostname}/{API.ZONE_URL}", json={"id": zone_id})
         if request.status_code != 200:
             raise Exception(f"Failed to delete zone {zone_id}")
 
@@ -133,7 +154,7 @@ class System:
         :param: zone_order: The new order of the zones.
         :return: None
         """
-        request = requests.put(f"{self.host}/{API.ZONE_ORDER_URL}", json={"order": zone_order})
+        request = requests.put(f"{self.hostname}/{API.ZONE_ORDER_URL}", json={"order": zone_order})
         if request.status_code != 200:
             raise Exception(f"Failed to update zone order {zone_order}")
         self.zones = self.get_zones()
