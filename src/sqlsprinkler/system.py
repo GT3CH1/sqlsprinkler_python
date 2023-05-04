@@ -65,6 +65,20 @@ class System:
         self._update_system_state()
         return self.state
 
+    def update(self):
+        """
+        Updates the system.
+        :return: None
+        """
+        self.zones = self._fetch_zones()
+        self._update_system_state()
+
+    def turn_on(self):
+        self.set_system_state(True)
+
+    def turn_off(self):
+        self.set_system_state(False)
+
     def set_system_state(self, state: bool) -> None:
         """
         Sets the system state.

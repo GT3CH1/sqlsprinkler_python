@@ -34,6 +34,34 @@ class Zone:
         # send request to API_ZONE_URL with ID and state
         requests.put(f"{self.host}/{API.ZONE_URL}", json={"id": self.id, "state": self.state})
 
+    def enable(self):
+        self.enabled = True
+        self.update(self)
+
+    def disable(self):
+        self.enabled = False
+        self.update(self)
+
+    def set_time(self, time: int) -> None:
+        self.time = time
+        self.update(self)
+
+    def set_gpio(self, gpio: int) -> None:
+        self.gpio = gpio
+        self.update(self)
+
+    def set_name(self, name: str) -> None:
+        self.name = name
+        self.update(self)
+
+    def set_auto_off(self, auto_off: bool) -> None:
+        self.auto_off = auto_off
+        self.update(self)
+
+    def set_system_order(self, system_order: int) -> None:
+        self.system_order = system_order
+        self.update(self)
+
     def update(self, other) -> None:
         """
         Updates the state of the zone.
