@@ -159,7 +159,7 @@ class System:
         zone_to_update = self.get_zone_by_id(zone.id)
         if zone_to_update is None:
             raise Exception(f"Zone {zone.id} not found")
-        zone.update(zone_to_update)
+        zone.update_other(zone_to_update)
         self.zones = self.get_zones()
 
     def update_zone_order(self, zone_order: List[int]) -> None:
