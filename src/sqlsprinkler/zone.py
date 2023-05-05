@@ -2,6 +2,8 @@ from dataclasses import field, dataclass
 
 import requests
 from sqlsprinkler import API
+
+
 @dataclass
 class Zone:
     """ This class represents a SQL Sprinkler zone. """
@@ -94,11 +96,13 @@ class Zone:
         # send request to API_ZONE_UPDATE_URL with name, gpio, time, enabled, auto_off, system_order
         zone_json = {
             "id": self.id,
-            "name": self.name,
-            "gpio": self.gpio,
-            "time": self.time,
-            "enabled": self.enabled,
-            "auto_off": self.auto_off,
-            "system_order": self.system_order
+            "Name": self.name,
+            "GPIO": self.gpio,
+            "Time": self.time,
+            "Enabled": self.enabled,
+            "Autooff": self.auto_off,
+            "SystemOrder": self.system_order
         }
-        requests.put(f"{self.host}/{API.ZONE_UPDATE_URL}", json=zone_json)
+        req = requests.put(f"{self.host}/{API.ZONE_UPDATE_URL}", json=zone_json)
+        if req.status_code != 200:
+            raise Exception(f"Zone did not update successfully ({req.status_code}). Payload: {zone_json}")
