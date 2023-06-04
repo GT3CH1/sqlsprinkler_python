@@ -10,6 +10,7 @@ class System:
     zones = []
     system_state = False
     hostname = ""
+    session = requests.Session()
 
     def __init__(self, hostname: str) -> None:
         self.hostname = hostname
@@ -32,7 +33,7 @@ class System:
         """
         url = "{}/{}".format(self.hostname,API.ZONE_INFO_URL)
         print(url)
-        request = requests.get(url)
+        request = self.session.get(url)
         print(request)
         zone_list = []
         for zone in request.json():
@@ -86,7 +87,7 @@ class System:
         :return: None
         """
         url = "{}/{}".format(self.hostname,API.SYSTEM_STATE_URL)
-        request = requests.put(url, json={"system_enabled": state})
+        request = self.session.put(url, json={"system_enabled": state})
         if request.status_code != 200:
             raise Exception(f"Failed to set system state {state}")
         self._update_system_state()
@@ -97,7 +98,7 @@ class System:
         """
         url = "{}/{}".format(self.hostname,API.SYSTEM_STATE_URL)
         print(url)
-        request = requests.get(url).json()
+        request = self.session.get(url).json()
         self.state = request["system_enabled"]
 
     def update_zone_state(self, zone_id: int, state: bool) -> None:
@@ -135,7 +136,7 @@ class System:
                 "Enabled": zone.enabled,
                 "Autooff": zone.auto_off,
                 }
-        request = requests.post(f"{self.hostname}/{API.ZONE_URL}", json=zone_to_add)
+        request = self.session.post(f"{self.hostname}/{API.ZONE_URL}", json=zone_to_add)
         if request.status_code != 200:
             raise Exception(f"Failed to add zone {zone}")
         self.zones = self.get_zones()
@@ -146,7 +147,7 @@ class System:
         :param zone_id: The zone ID to delete.
         :return: None
         """
-        request = requests.delete(f"{self.hostname}/{API.ZONE_URL}", json={"id": zone_id})
+        request = self.session.delete(f"{self.hostname}/{API.ZONE_URL}", json={"id": zone_id})
         if request.status_code != 200:
             raise Exception(f"Failed to delete zone {zone_id}")
 
@@ -168,7 +169,7 @@ class System:
         :param: zone_order: The new order of the zones.
         :return: None
         """
-        request = requests.put(f"{self.hostname}/{API.ZONE_ORDER_URL}", json={"order": zone_order})
+        request = self.session.put(f"{self.hostname}/{API.ZONE_ORDER_URL}", json={"order": zone_order})
         if request.status_code != 200:
             raise Exception(f"Failed to update zone order {zone_order}")
         self.zones = self.get_zones()

@@ -1,6 +1,7 @@
 from dataclasses import field, dataclass
 
 import requests
+import asyncio
 from sqlsprinkler import API
 
 
@@ -16,6 +17,7 @@ class Zone:
     system_order: int = field(default_factory=int)
     state: bool = field(default_factory=bool)
     id: int = field(default_factory=int)
+    session = requests.Session()
 
     def turn_on(self) -> None:
         """
@@ -25,7 +27,7 @@ class Zone:
         self.state = True
         # send request to API_ZONE_URL with ID and state
         url = "{}{}"
-        requests.put(f"{self.host}/{API.ZONE_URL}", json={"id": self.id, "state": self.state})
+        self.session.put(f"{self.host}/{API.ZONE_URL}", json={"id": self.id, "state": self.state})
 
     def turn_off(self) -> None:
         """
@@ -34,7 +36,7 @@ class Zone:
         """
         self.state = False
         # send request to API_ZONE_URL with ID and state
-        requests.put(f"{self.host}/{API.ZONE_URL}", json={"id": self.id, "state": self.state})
+        self.session.put(f"{self.host}/{API.ZONE_URL}", json={"id": self.id, "state": self.state})
 
     def update(self) -> None:
         """
@@ -42,8 +44,11 @@ class Zone:
         :return: None
         """
         # send request to API_ZONE_INFO_URL with ID
+        asyncio.run(self.async_update())
+
+    async def async_update(self) -> None:
         url = "{}/{}/{}".format(self.host, API.ZONE_INFO_URL, self.id)
-        request = requests.get(url)
+        request = self.session.get(url)
         self.name = request.json()['name']
         self.gpio = request.json()['gpio']
         self.time = request.json()['time']
@@ -51,6 +56,7 @@ class Zone:
         self.auto_off = request.json()['auto_off']
         self.system_order = request.json()['system_order']
         self.state = request.json()['state']
+        print("Updating zone {}".format(self.id))
 
     def enable(self):
         self.enabled = True
@@ -95,14 +101,14 @@ class Zone:
 
         # send request to API_ZONE_UPDATE_URL with name, gpio, time, enabled, auto_off, system_order
         zone_json = {
-            "id": self.id,
-            "Name": self.name,
-            "GPIO": self.gpio,
-            "Time": self.time,
-            "Enabled": self.enabled,
-            "Autooff": self.auto_off,
-            "SystemOrder": self.system_order
-        }
-        req = requests.put(f"{self.host}/{API.ZONE_UPDATE_URL}", json=zone_json)
+                "id": self.id,
+                "Name": self.name,
+                "GPIO": self.gpio,
+                "Time": self.time,
+                "Enabled": self.enabled,
+                "Autooff": self.auto_off,
+                "SystemOrder": self.system_order
+                }
+        req = self.session.put(f"{self.host}/{API.ZONE_UPDATE_URL}", json=zone_json)
         if req.status_code != 200:
             raise Exception(f"Zone did not update successfully ({req.status_code}). Payload: {zone_json}")
