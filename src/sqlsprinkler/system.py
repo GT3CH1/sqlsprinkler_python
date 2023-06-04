@@ -3,6 +3,7 @@ from dataclasses import dataclass, field, asdict
 from typing import List
 
 import requests
+import aiohttp
 from sqlsprinkler import API, Zone
 
 class System:
@@ -14,8 +15,8 @@ class System:
 
     def __init__(self, hostname: str) -> None:
         self.hostname = hostname
-        self.zones = self.get_zones()
-        self.system_state = self.get_system_state()
+        self.zones = []
+        self.system_state = False
 
     def __post_init__(self) -> None:
         """
@@ -73,6 +74,34 @@ class System:
         """
         self.zones = self._fetch_zones()
         self._update_system_state()
+
+    async def update_async(self):
+        """
+        Fetches the zones from the hostname.
+        :return: A list of zones.
+        """
+        url = "{}/{}".format(self.hostname,API.ZONE_INFO_URL)
+        zone_list = []
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                for zone in await response.json():
+                    new_zone = Zone()
+                    new_zone.host = self.hostname
+                    new_zone.name = zone['name']
+                    new_zone.gpio = zone['gpio']
+                    new_zone.time = zone['time']
+                    new_zone.enabled = zone['enabled']
+                    new_zone.auto_off = zone['auto_off']
+                    new_zone.system_order = zone['system_order']
+                    new_zone.state = zone['state']
+                    new_zone.id = zone['id']
+                    zone_list.append(new_zone)
+                self.zones = zone_list
+            url = "{}/{}".format(self.hostname,API.SYSTEM_STATE_URL)
+            async with session.get(url) as response:
+                request = await response.json()
+                self.state = request["system_enabled"]
+
 
     def turn_on(self):
         self.set_system_state(True)

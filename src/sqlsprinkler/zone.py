@@ -2,6 +2,7 @@ from dataclasses import field, dataclass
 
 import requests
 import asyncio
+import aiohttp
 from sqlsprinkler import API
 
 
@@ -46,17 +47,19 @@ class Zone:
         # send request to API_ZONE_INFO_URL with ID
         asyncio.run(self.async_update())
 
-    async def async_update(self) -> None:
+    async def update_async(self) -> None:
         url = "{}/{}/{}".format(self.host, API.ZONE_INFO_URL, self.id)
-        request = self.session.get(url)
-        self.name = request.json()['name']
-        self.gpio = request.json()['gpio']
-        self.time = request.json()['time']
-        self.enabled = request.json()['enabled']
-        self.auto_off = request.json()['auto_off']
-        self.system_order = request.json()['system_order']
-        self.state = request.json()['state']
-        print("Updating zone {}".format(self.id))
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as request:
+                response = await request.json()
+                self.name = response['name']
+                self.gpio = response['gpio']
+                self.time = response['time']
+                self.enabled = response['enabled']
+                self.auto_off = response['auto_off']
+                self.system_order = response['system_order']
+                self.state = response['state']
+                print("Updating zone {}".format(self.id))
 
     def enable(self):
         self.enabled = True
