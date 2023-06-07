@@ -23,7 +23,6 @@ class System:
         Gets the zones from the hostname.
         :return: None
         """
-        print("Host {}".format(self.hostname))
         self.zones = self.get_zones()
         self.system_state = self.get_system_state()
 
@@ -33,9 +32,7 @@ class System:
         :return: A list of zones.
         """
         url = "{}/{}".format(self.hostname,API.ZONE_INFO_URL)
-        print(url)
         request = self.session.get(url)
-        print(request)
         zone_list = []
         for zone in request.json():
             new_zone = Zone()
@@ -109,6 +106,12 @@ class System:
     def turn_off(self):
         self.set_system_state(False)
 
+    async def turn_on_async(self)
+        self.set_system_state_async(True)
+
+    async def turn_on_async(self)
+        self.set_system_state_async(False)
+
     def set_system_state(self, state: bool) -> None:
         """
         Sets the system state.
@@ -121,12 +124,22 @@ class System:
             raise Exception(f"Failed to set system state {state}")
         self._update_system_state()
 
+    async def set_system_state_async(self,state: bool) -> None:
+        url = "{}/{}".format(self.hostname,API.SYSTEM_STATE_URL)
+        json={"system_enabled": state}
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url,json) as response:
+                status = await response.status_code
+                if status_code != 200:
+                    raise Exception(f"Failed to set system state {state}")
+                else:
+                    self.state = state
+
     def _update_system_state(self) -> None:
         """
         Fetches the system state from the hostname.
         """
         url = "{}/{}".format(self.hostname,API.SYSTEM_STATE_URL)
-        print(url)
         request = self.session.get(url).json()
         self.state = request["system_enabled"]
 
