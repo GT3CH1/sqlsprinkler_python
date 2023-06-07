@@ -62,7 +62,7 @@ class System:
         :return: The system state.
         """
         self._update_system_state()
-        return self.state
+        return self.system_state
 
     def update(self):
         """
@@ -141,7 +141,7 @@ class System:
         """
         url = "{}/{}".format(self.hostname,API.SYSTEM_STATE_URL)
         request = self.session.get(url).json()
-        self.state = request["system_enabled"]
+        self.system_state = request["system_enabled"]
 
     def update_zone_state(self, zone_id: int, state: bool) -> None:
         """
