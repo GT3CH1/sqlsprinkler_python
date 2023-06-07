@@ -97,7 +97,7 @@ class System:
             url = "{}/{}".format(self.hostname,API.SYSTEM_STATE_URL)
             async with session.get(url) as response:
                 request = await response.json()
-                self.state = request["system_enabled"]
+                self.system_state = request["system_enabled"]
 
 
     def turn_on(self):
@@ -106,10 +106,10 @@ class System:
     def turn_off(self):
         self.set_system_state(False)
 
-    async def async_turn_on(self)
+    async def async_turn_on(self):
         self.async_set_system_state(True)
 
-    async def async_turn_on(self)
+    async def async_turn_off(self):
         self.async_set_system_state(False)
 
     def set_system_state(self, state: bool) -> None:
