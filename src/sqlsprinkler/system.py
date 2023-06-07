@@ -107,10 +107,10 @@ class System:
         self.set_system_state(False)
 
     async def async_turn_on(self):
-        self.async_set_system_state(True)
+        await self.async_set_system_state(True)
 
     async def async_turn_off(self):
-        self.async_set_system_state(False)
+        await self.async_set_system_state(False)
 
     def set_system_state(self, state: bool) -> None:
         """
@@ -122,18 +122,18 @@ class System:
         request = self.session.put(url, json={"system_enabled": state})
         if request.status_code != 200:
             raise Exception(f"Failed to set system state {state}")
-        self._update_system_state()
+        self.system_state = state
 
     async def async_set_system_state(self,state: bool) -> None:
         url = "{}/{}".format(self.hostname,API.SYSTEM_STATE_URL)
-        json={"system_enabled": state}
+        payload={"system_enabled": state}
         async with aiohttp.ClientSession() as session:
-            async with session.post(url,json) as response:
-                status = await response.status_code
+            async with session.put(url,json={"system_enabled": state}) as response:
+                status_code = response.status
                 if status_code != 200:
-                    raise Exception(f"Failed to set system state {state}")
+                    raise Exception(f"Failed to set system state {state}, HTTP {status_code}, payload {payload}, url {url}")
                 else:
-                    self.state = state
+                    self.system_state = state
 
     def _update_system_state(self) -> None:
         """
