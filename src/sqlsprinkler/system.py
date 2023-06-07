@@ -72,7 +72,7 @@ class System:
         self.zones = self._fetch_zones()
         self._update_system_state()
 
-    async def update_async(self):
+    async def async_update(self):
         """
         Fetches the zones from the hostname.
         :return: A list of zones.
@@ -106,11 +106,11 @@ class System:
     def turn_off(self):
         self.set_system_state(False)
 
-    async def turn_on_async(self)
-        self.set_system_state_async(True)
+    async def async_turn_on(self)
+        self.async_set_system_state(True)
 
-    async def turn_on_async(self)
-        self.set_system_state_async(False)
+    async def async_turn_on(self)
+        self.async_set_system_state(False)
 
     def set_system_state(self, state: bool) -> None:
         """
@@ -124,7 +124,7 @@ class System:
             raise Exception(f"Failed to set system state {state}")
         self._update_system_state()
 
-    async def set_system_state_async(self,state: bool) -> None:
+    async def async_set_system_state(self,state: bool) -> None:
         url = "{}/{}".format(self.hostname,API.SYSTEM_STATE_URL)
         json={"system_enabled": state}
         async with aiohttp.ClientSession() as session:

@@ -1,7 +1,6 @@
 from dataclasses import field, dataclass
 
 import requests
-import asyncio
 import aiohttp
 from sqlsprinkler import API
 
@@ -45,9 +44,21 @@ class Zone:
         :return: None
         """
         # send request to API_ZONE_INFO_URL with ID
-        asyncio.run(self.async_update())
+        url = "{}/{}/{}".format(self.host, API.ZONE_INFO_URL, self.id)
+        response = self.session.get(url)
+        if response.status_code != 200:
+            raise Exception("Failed to update zone {}".format(self.id))
+        response = response.json()                     
+        self.name = response['name']
+        self.gpio = response['gpio']
+        self.time = response['time']
+        self.enabled = response['enabled']
+        self.auto_off = response['auto_off']
+        self.system_order = response['system_order']
+        self.state = response['state']
 
-    async def update_async(self) -> None:
+
+    async def async_update(self) -> None:
         url = "{}/{}/{}".format(self.host, API.ZONE_INFO_URL, self.id)
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as request:
